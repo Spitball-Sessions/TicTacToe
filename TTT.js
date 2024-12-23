@@ -5,12 +5,33 @@ function db(input) {
 }
 
 
-
 //Player logic
-function createPlayer(name, screenOrder){
-    const symbol = screenOrder === 1?"X":"O";
+function createPlayer(){
+    //Immediately Invoked Function - starts immediately, no need to call.
+    const {name1,name2,symbol1,symbol2} = (function (){
+        const name1 = prompt("First name?").trim();
+        const symbol1 = prompt("First Symbol?").trim().toUpperCase();
+        const name2 = prompt("Second name?").trim();
+        const symbol2 = prompt("Second Symbol?").trim().toUpperCase();
+        return {name1,name2,symbol1,symbol2}
+    })();
 
-    return{name,symbol,screenOrder}
+    const {firstPlayer,secondPlayer} = (function(){
+        if (Math.random() <= 0.5){
+            const firstPlayer = {name:name1,symbol:symbol1};
+            const secondPlayer = {name:name2,symbol:symbol2};
+            db(firstPlayer)
+            return {firstPlayer,secondPlayer}
+        }
+        else{
+            const firstPlayer = {name:name2,symbol:symbol2};
+            const secondPlayer = {name:name1,symbol:symbol1};
+            db(firstPlayer)
+            return {firstPlayer,secondPlayer}
+        }
+    })();
+
+    return{firstPlayer,secondPlayer}
 }
 
 //Board logic
@@ -21,7 +42,9 @@ function createBoard(){
     
                     
     function playMove(input,symbol){
-        board[input] = symbol
+        const move = board.indexOf(input)
+        board[move] = symbol
+        db(board)
     }
 
     const winningPatterns = [
@@ -51,53 +74,40 @@ function createBoard(){
 
 //GAME logic
 function gameStart(){
-    const {name1,name2} = (function(){
-        const name1 = prompt("Player 1's name?").trim();
-        const name2 = prompt("Player 2's name?").trim();
-        return {name1,name2}
-    })();
+    const {firstPlayer,secondPlayer} = createPlayer();
+    let result = "";
 
-    let turn = 0
-    const startGame = () =>turn;
+    function playTurn(event){
+        let player = turn%2 == 0?secondPlayer:firstPlayer;
+        db(player);
 
-    function playTurn(event,player){
-        let result = "";
         turn++;
         if (turn == 10){
             result = "Draw!"
             return result
         }
 
-        playMove(event,player)
+        playMove(event,player.symbol)
 
         if (turn >= 5){
-            result = checkForWin(player1.symbol) === true?player1.name + " wins!":"";
+            result = checkForWin(player.symbol) === true?player.name + " wins!":"";
             db(result)
             return result;
         }
         else{
-            return "";
+            return result = "";
         }
     }
 
+    let turn = 1
+    const startGame = () =>turn;
 
-    const player1 = createPlayer(name1,1);
-    const player2 = createPlayer(name2,2);
     const {board,playMove,checkForWin} = createBoard();
     startGame();
-    db(turn);
-
-
-    playTurn(0,player1.symbol);
-    db(turn);
-    playTurn(4,player2.symbol);
-    db(turn);
-    playTurn(1,player1.symbol);
-    db(turn);
-    playTurn(8,player2.symbol);
-    db(turn);
-    playTurn(2,player1.symbol);
-    db(turn);
+    
+    while (result == ""){
+        playTurn(prompt("${player.name}, What square?")) 
+    }
 }
 
 
