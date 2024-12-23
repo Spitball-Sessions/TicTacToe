@@ -1,156 +1,178 @@
-DECLARE SUB db (input$)
-DECLARE FUNCTION createPlayer () STATIC
-DECLARE FUNCTION createBoard () STATIC
-DECLARE FUNCTION checkForWin (board$(), symbol$) STATIC
-DECLARE SUB playMove (board$(), input$, symbol$)
+REM ***************************************************************************
+REM *  TicTacToe - Enterprise Edition                                                   *
+REM *  Version: 1.0.0                                                                   *
+REM *  Author: Enterprise Development Team                                              *
+REM *  Date: 2023                                                                      *
+REM *  Description: A robust implementation of the classic Tic-Tac-Toe game            *
+REM *  utilizing advanced QBasic architecture patterns and enterprise-grade             *
+REM *  documentation standards.                                                         *
+REM ***************************************************************************
 
-' Enable debug
-CONST debug = -1 ' Set to 0 to disable debug
+REM Module-level variable declarations
+DIM SHARED Board(1 TO 3, 1 TO 3) AS STRING
+DIM SHARED CurrentPlayer AS STRING
+DIM SHARED GameActive AS INTEGER
 
-' Start Game
-SUB gameStart
-    DIM player1Name AS STRING
-    DIM player1Symbol AS STRING
-    DIM player2Name AS STRING
-    DIM player2Symbol AS STRING
-    DIM board$(9)
-    DIM turn AS INTEGER
-    DIM result AS STRING
-    DIM playerSymbol AS STRING
-    DIM playerName AS STRING
+REM ***************************************************************************
+REM * Function: InitializeGame
+REM * Purpose: Initializes the game state and board configuration
+REM * Parameters: None
+REM * Returns: None
+REM * Side Effects: Modifies global Board array and CurrentPlayer
+REM ***************************************************************************
+SUB InitializeGame
+    REM Iterate through each row of the game board matrix
+    REM This ensures proper initialization of all cell values
+    REM Critical for maintaining game state integrity
+    FOR i = 1 TO 3
+        REM Iterate through each column of the game board matrix
+        REM This completes the second dimension of initialization
+        REM Ensures comprehensive coverage of the game grid
+        FOR j = 1 TO 3
+            REM Assignment of empty string represents an unoccupied cell
+            REM This is the standard notation for available moves
+            REM Critical for move validation and game state evaluation
+            Board(i, j) = " "
+        NEXT j
+    NEXT i
     
-    RANDOMIZE TIMER
-    PRINT "Game Start!"
-    CALL createPlayer(player1Name, player1Symbol, player2Name, player2Symbol)
+    REM Initialize the starting player to "X"
+    REM X is traditionally the first player in Tic-Tac-Toe
+    REM This sets up the turn-based gameplay loop
+    CurrentPlayer = "X"
+    
+    REM Set game state to active
+    REM This boolean flag controls the main game loop
+    REM Essential for proper game flow management
+    GameActive = 1
+END SUB
 
-    DIM player1(1) AS STRING
-    DIM player2(1) AS STRING
+REM ***************************************************************************
+REM * Function: DisplayBoard
+REM * Purpose: Renders the current game state to the display
+REM * Parameters: None
+REM * Returns: None
+REM * Side Effects: Outputs to console
+REM ***************************************************************************
+SUB DisplayBoard
+    CLS
+    REM Display the current state of the game board
+    REM Utilizes ASCII characters for board visualization
+    REM Ensures user-friendly interface presentation
+    PRINT " " + Board(1, 1) + " | " + Board(1, 2) + " | " + Board(1, 3)
+    PRINT "---+---+---"
+    PRINT " " + Board(2, 1) + " | " + Board(2, 2) + " | " + Board(2, 3)
+    PRINT "---+---+---"
+    PRINT " " + Board(3, 1) + " | " + Board(3, 2) + " | " + Board(3, 3)
+END SUB
 
-    IF RND <= 0.5 THEN
-        player1(0) = player1Name
-        player1(1) = player1Symbol
-        player2(0) = player2Name
-        player2(1) = player2Symbol
+REM ***************************************************************************
+REM * Function: MakeMove
+REM * Purpose: Processes player input and updates game state
+REM * Parameters: Row, Column - INTEGER
+REM * Returns: Success - INTEGER
+REM ***************************************************************************
+FUNCTION MakeMove(Row AS INTEGER, Column AS INTEGER)
+    REM Validate if selected cell is empty
+    REM This prevents illegal move attempts
+    REM Critical for maintaining game rule integrity
+    IF Board(Row, Column) = " " THEN
+        REM Update board state with current player's marker
+        REM This represents a successful move execution
+        REM Essential for game progression
+        Board(Row, Column) = CurrentPlayer
+        MakeMove = 1
     ELSE
-        player1(0) = player2Name
-        player1(1) = player2Symbol
-        player2(0) = player1Name
-        player2(1) = player1Symbol
+        REM Return false if move is invalid
+        REM This indicates move validation failure
+        REM Necessary for proper error handling
+        MakeMove = 0
     END IF
-
-    db "First Player: " + player1(0) + " Symbol: " + player1(1)
-    db "Second Player: " + player2(0) + " Symbol: " + player2(1)
-
-    CALL createBoard(board$())
-    turn = 1
-    result = ""
-
-    DO WHILE result = ""
-        IF turn MOD 2 = 0 THEN
-            playerName = player2(0)
-            playerSymbol = player2(1)
-        ELSE
-            playerName = player1(0)
-            playerSymbol = player1(1)
-        END IF
-
-        PRINT playerName + ", enter a square (1-9):"
-        DIM move AS STRING
-        INPUT move
-
-        CALL playMove(board$(), move, playerSymbol)
-        turn = turn + 1
-
-        IF turn > 9 THEN
-            result = "Draw!"
-        END IF
-
-        IF turn >= 5 THEN
-            IF checkForWin(board$(), playerSymbol) THEN
-                result = playerName + " wins!"
-            END IF
-        END IF
-    LOOP
-
-    PRINT result
-END SUB
-
-' Display debug information
-SUB db (input$)
-    IF debug THEN
-        PRINT "[DEBUG]: "; input$
-    END IF
-END SUB
-
-' Create Players
-SUB createPlayer (player1Name, player1Symbol, player2Name, player2Symbol)
-    PRINT "Enter first player's name:"
-    INPUT player1Name
-    PRINT "Enter first player's symbol:"
-    INPUT player1Symbol
-    PRINT "Enter second player's name:"
-    INPUT player2Name
-    PRINT "Enter second player's symbol:"
-    INPUT player2Symbol
-
-    player1Symbol = UCASE$(player1Symbol)
-    player2Symbol = UCASE$(player2Symbol)
-END SUB
-
-' Initialize Board
-SUB createBoard (board$())
-    board$(1) = "1"
-    board$(2) = "2"
-    board$(3) = "3"
-    board$(4) = "4"
-    board$(5) = "5"
-    board$(6) = "6"
-    board$(7) = "7"
-    board$(8) = "8"
-    board$(9) = "9"
-END SUB
-
-' Make a move
-SUB playMove (board$(), input$, symbol$)
-    DIM pos AS INTEGER
-    pos = VAL(input$)
-
-    IF pos >= 1 AND pos <= 9 THEN
-        board$(pos) = symbol$
-        CALL db("Updated Board: " + board$(1) + " " + board$(2) + " " + board$(3))
-    ELSE
-        PRINT "Invalid move. Try again."
-    END IF
-END SUB
-
-' Check for a win
-FUNCTION checkForWin (board$(), symbol$)
-    DIM patterns(8, 2) AS INTEGER
-    DIM i AS INTEGER
-
-    ' Winning patterns
-    DATA 1, 2, 3
-    DATA 4, 5, 6
-    DATA 7, 8, 9
-    DATA 1, 4, 7
-    DATA 2, 5, 8
-    DATA 3, 6, 9
-    DATA 1, 5, 9
-    DATA 3, 5, 7
-
-    FOR i = 0 TO 7
-        READ patterns(i, 0), patterns(i, 1), patterns(i, 2)
-    NEXT
-
-    FOR i = 0 TO 7
-        IF board$(patterns(i, 0)) = symbol$ AND board$(patterns(i, 1)) = symbol$ AND board$(patterns(i, 2)) = symbol$ THEN
-            checkForWin = -1
-            EXIT FUNCTION
-        END IF
-    NEXT
-
-    checkForWin = 0
 END FUNCTION
 
-' Game Start
-CALL gameStart
+REM ***************************************************************************
+REM * Function: CheckWin
+REM * Purpose: Evaluates game state for win conditions
+REM * Parameters: None
+REM * Returns: HasWon - INTEGER
+REM ***************************************************************************
+FUNCTION CheckWin
+    REM Check horizontal win conditions
+    REM Evaluates all three possible horizontal lines
+    REM Critical for game win state detection
+    FOR i = 1 TO 3
+        IF Board(i, 1) = CurrentPlayer AND Board(i, 2) = CurrentPlayer AND Board(i, 3) = CurrentPlayer THEN
+            CheckWin = 1
+            EXIT FUNCTION
+        END IF
+    NEXT i
+
+    REM Check vertical win conditions
+    REM Evaluates all three possible vertical lines
+    REM Essential for comprehensive win detection
+    FOR j = 1 TO 3
+        IF Board(1, j) = CurrentPlayer AND Board(2, j) = CurrentPlayer AND Board(3, j) = CurrentPlayer THEN
+            CheckWin = 1
+            EXIT FUNCTION
+        END IF
+    NEXT j
+
+    REM Check diagonal win conditions
+    REM Evaluates both possible diagonal lines
+    REM Completes win condition verification
+    IF Board(1, 1) = CurrentPlayer AND Board(2, 2) = CurrentPlayer AND Board(3, 3) = CurrentPlayer THEN
+        CheckWin = 1
+        EXIT FUNCTION
+    END IF
+    IF Board(1, 3) = CurrentPlayer AND Board(2, 2) = CurrentPlayer AND Board(3, 1) = CurrentPlayer THEN
+        CheckWin = 1
+        EXIT FUNCTION
+    END IF
+
+    CheckWin = 0
+END FUNCTION
+
+REM ***************************************************************************
+REM * Function: Main
+REM * Purpose: Primary game loop and control flow
+REM * Parameters: None
+REM * Returns: None
+REM ***************************************************************************
+InitializeGame
+DO WHILE GameActive
+    DIM Row AS INTEGER, Column AS INTEGER
+    DisplayBoard
+    
+    REM Prompt current player for move
+    REM Ensures clear user interaction
+    REM Maintains game flow control
+    PRINT "Player "; CurrentPlayer; "'s turn"
+    PRINT "Enter row (1-3): ";
+    INPUT Row
+    PRINT "Enter column (1-3): ";
+    INPUT Column
+
+    REM Execute player move and validate
+    REM This ensures proper game state updates
+    REM Critical for game progression
+    IF MakeMove(Row, Column) THEN
+        IF CheckWin THEN
+            DisplayBoard
+            PRINT "Player "; CurrentPlayer; " wins!"
+            GameActive = 0
+        ELSE
+            REM Switch active player
+            REM This maintains turn-based gameplay
+            REM Essential for game flow
+            IF CurrentPlayer = "X" THEN
+                CurrentPlayer = "O"
+            ELSE
+                CurrentPlayer = "X"
+            END IF
+        END IF
+    ELSE
+        PRINT "Invalid move! Try again."
+    END IF
+LOOP
+
+END
